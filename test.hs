@@ -8,16 +8,21 @@ infixl 0 $$
 ($$) :: (a -> b) -> a -> b
 f $$ x = f x
 
+infixl 3 +\+ -- FIXME: find the proper level
+(+\+) :: String -> String -> String
+(+\+) = (++) . (++ "\n")
+
 
 -- 3D objects
 type Pos = Rational
 showPos n = show . fromRational $ n
 
 type Coord = (Pos, Pos, Pos)
+data Color = Red | Blue | Green | Yellow | Orange | Purple | Default deriving (Show)
 
 data Dir = X | Y | Z deriving (Show)
 
-data Mesh = Cube Coord Coord deriving (Show)
+data Mesh = Cube Coord Coord | ColoredCube Color Coord Coord deriving (Show)
 
 shift :: Dir -> Pos -> Coord -> Coord
 shift X n (x, y, z) = (x + n, y, z)
@@ -31,9 +36,11 @@ printCoord (x, y, z) = showString "v " . concat . intersperse " " . map showPos 
 printFace :: (Int, Int, Int, Int) -> String
 printFace (v1, v2, v3, v4) = showString "f " . concat . intersperse " " . map show $ [v1, v2, v3, v4]
 
-printMesh :: Mesh -> Int -> String
-printMesh (Cube (x1, y1, z1) (x2, y2, z2)) ofst =
-  -- For now, this assumes that coordinates are properly ordered
+-- printCube outputs the vertices and faces that form the cube on the given coordinates
+-- FIXME: apparently faces can use negative indexes -> no need for the offset parameter
+printCube :: Coord -> Coord -> Int -> String
+printCube (x1, y1, z1) (x2, y2, z2) ofst =
+    -- For now, this assumes that coordinates are properly ordered
   (concat . intersperse "\n" . map printCoord $
     [ (x1, y1, z1),
       (x2, y1, z1),
@@ -52,6 +59,14 @@ printMesh (Cube (x1, y1, z1) (x2, y2, z2)) ofst =
           (3, 5, 8, 7),
           (4, 6, 8, 7)
           ])
+
+
+printMesh :: Mesh -> Int -> String
+printMesh (Cube p1 p2) ofst = printMesh (ColoredCube Default p1 p2) ofst
+  -- "o cube" ++ (show ofst) ++ "\n" ++ printCube p1 p2 ofst
+printMesh (ColoredCube c p1 p2) ofst =
+  "o cube" ++ (show ofst) +\+ "usemtl " ++ (show c) +\+ printCube p1 p2 ofst
+
 
 -- Little temporary hack related to the way .obj files (don't) name vertices
 printMeshOffset = (+ 8)
@@ -96,7 +111,7 @@ type WeightFun = Pos -> Pos -> Int
 -- and its subgenerators use the same random sequence (as they are on the same coordinates)
 genWorld :: Seed -> Pos -> Pos -> [Mesh]
 genWorld s n m =
-  Cube (0, 0, -1) (n, m, 0) -- World support
+  ColoredCube Green (-n, -m, -1) (2 * n, 2 * m, 0) -- World support
     : genList 0 0
       where
         ep = 1
@@ -134,6 +149,7 @@ weightBuildg1 _ _ = 1 -- TODO
 genBuildg1 root xsz ysz = [Cube root . shift X xsz . shift Y ysz . shift Z 30 $ root]
 
 main = do
+  putStrLn "mtllib simple.mtl"
   putStrLn . printMeshList $ genWorld 0 100 100
 
 

@@ -1,0 +1,82 @@
+newmtl Red
+  Kd 1 0 0
+  Ka 0.0 0.0 0.0
+  Ks 0.0 0.0 0.0
+  Ns 10.0
+  Ke 0.0 0.0 0.0
+  Ni 1.5
+  d 0.5
+  Tf 1.0 1.0 1.0
+  illum 7
+
+
+newmtl Blue
+  Kd 0 0 1
+  Ka 0.0 0.0 0.0
+  Ks 0.0 0.0 0.0
+  Ns 10.0
+  Ke 0.0 0.0 0.0
+  Ni 1.5
+  d 0.5
+  Tf 1.0 1.0 1.0
+  illum 7
+
+
+newmtl Green
+  Kd 0 1 0
+  Ka 0.0 0.0 0.0
+  Ks 0.0 0.0 0.0
+  Ns 10.0
+  Ke 0.0 0.0 0.0
+  Ni 1.5
+  d 0.5
+  Tf 1.0 1.0 1.0
+  illum 7
+
+
+newmtl Yellow
+  Kd 1 1 0
+  Ka 0.0 0.0 0.0
+  Ks 0.0 0.0 0.0
+  Ns 10.0
+  Ke 0.0 0.0 0.0
+  Ni 1.5
+  d 0.5
+  Tf 1.0 1.0 1.0
+  illum 7
+
+
+newmtl Orange
+  Kd 1 .3 0
+  Ka 0.0 0.0 0.0
+  Ks 0.0 0.0 0.0
+  Ns 10.0
+  Ke 0.0 0.0 0.0
+  Ni 1.5
+  d 0.5
+  Tf 1.0 1.0 1.0
+  illum 7
+
+
+newmtl Purple
+  Kd 1 0 1
+  Ka 0.0 0.0 0.0
+  Ks 0.0 0.0 0.0
+  Ns 10.0
+  Ke 0.0 0.0 0.0
+  Ni 1.5
+  d 0.5
+  Tf 1.0 1.0 1.0
+  illum 7
+
+
+newmtl Default
+  Kd .1 .1 .1
+  Ka 0.0 0.0 0.0
+  Ks 0.0 0.0 0.0
+  Ns 10.0
+  Ke 0.0 0.0 0.0
+  Ni 1.5
+  d 0.5
+  Tf 1.0 1.0 1.0
+  illum 7
