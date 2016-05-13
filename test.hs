@@ -1,4 +1,9 @@
+{-# LANGUAGE DataKinds, PolyKinds, TypeOperators, TypeFamilies, GADTs, ScopedTypeVariables, TemplateHaskell, KindSignatures #-}
+{-# LANGUAGE AllowAmbiguousTypes, FlexibleContexts, RankNTypes, UndecidableInstances, FlexibleInstances, InstanceSigs, DefaultSignatures #-}
+
 import Data.List (intersperse)
+import Data.Singletons.TH
+import Data.Singletons.Prelude
 import Control.Arrow
 import System.Random
 
@@ -20,14 +25,30 @@ showPos n = show . fromRational $ n
 type Coord = (Pos, Pos, Pos)
 data Color = Red | Blue | Green | Yellow | Orange | Purple | Default deriving (Show)
 
-data Dir = X | Y | Z deriving (Show)
+-- data Dir = X | Y | Z | A deriving (Show)
+$(singletons [d|
+  data Direction = X | Y | Z | A deriving (Show)
+  |])
+
+type family DirShift (d :: Direction) :: * where
+  DirShift X = Pos
+  DirShift Y = Pos
+  DirShift Z = Pos
+  DirShift A = (Pos, Pos, Pos)
+
+shift :: SDirection d -> DirShift d -> Coord -> Coord
+shift SX n (x, y, z) = (x + n, y, z)
+shift SY n (x, y, z) = (x, y + n, z)
+shift SZ n (x, y, z) = (x, y, z + n)
+shift SA (x', y', z') (x, y, z) = (x + x', y + y', z + z')
+
+-- shift :: Dir -> Pos -> Coord -> Coord
+-- shift X n (x, y, z) = (x + n, y, z)
+-- shift Y n (x, y, z) = (x, y + n, z)
+-- shift Z n (x, y, z) = (x, y, z + n)
+
 
 data Mesh = Cube Coord Coord | ColoredCube Color Coord Coord deriving (Show)
-
-shift :: Dir -> Pos -> Coord -> Coord
-shift X n (x, y, z) = (x + n, y, z)
-shift Y n (x, y, z) = (x, y + n, z)
-shift Z n (x, y, z) = (x, y, z + n)
 
 printCoord :: Coord -> String
 printCoord (x, y, z) = showString "v " . concat . intersperse " " . map showPos $ [x, y, z]
@@ -126,27 +147,44 @@ genWorld s n m =
 
 genBlock :: Seed -> Coord -> Pos -> Pos -> [Mesh]
 genBlock s root xsz ysz =
-    case selectedWeightList ws gen of House1 -> genHouse1 root xsz ysz
-                                      Building1 -> genBuildg1 root xsz ysz
+    case selectedWeightList ws gen of House1     -> genHouse1 root xsz ysz
+                                      Building1  -> genBuildg1 root xsz ysz
+                                      Empty      -> genEmpty root xsz ysz
+                                      HouseBlock -> genHouseBlock root xsz ysz
     -- [Cube root . shift X xsz . shift Y ysz . shift Z 10 $ root]
   where
       gen = coord2Gen s 0 root
-      ws = [(House1, weightHouse1 xsz ysz), (Building1, weightBuildg1 xsz ysz)] -- TODO
+      ws = [(HouseBlock, weightHouseBlock xsz ysz),
+            (Building1, weightBuildg1 xsz ysz),
+            (Empty, weightEmpty xsz ysz)] -- TODO
 
 -- Building generators
-data BuildingType = House1 | Building1 deriving (Show)
+data GeneratorType = House1 | Building1 | Empty | HouseBlock deriving (Show)
+
+-- House block
+weightHouseBlock :: WeightFun
+weightHouseBlock _ _ = 90 -- TODO
+
+genHouseBlock root xsz ysz = []
 
 -- Simple house
 weightHouse1 :: WeightFun
-weightHouse1 _ _ = 1 -- TODO
+weightHouse1 _ _ = 100 -- TODO
 
-genHouse1 root xsz ysz = [Cube root . shift X xsz . shift Y ysz . shift Z 10 $ root]
+genHouse1 root xsz ysz = [Cube root . shift SX xsz . shift SY ysz . shift SZ 5 $ root,
+                          ColoredCube Orange (shift SZ 5 root) . shift SX xsz . shift SY ysz . shift SZ 10 $ root]
 
 -- Simple building
 weightBuildg1 :: WeightFun
-weightBuildg1 _ _ = 1 -- TODO
+weightBuildg1 _ _ = 100 -- TODO
 
-genBuildg1 root xsz ysz = [Cube root . shift X xsz . shift Y ysz . shift Z 30 $ root]
+genBuildg1 root xsz ysz = [Cube root . shift SX xsz . shift SY ysz . shift SZ 30 $ root]
+
+-- Empty block
+weightEmpty :: WeightFun
+weightEmpty _ _ = 10 -- TODO
+
+genEmpty root xsz ysz = []
 
 main = do
   putStrLn "mtllib simple.mtl"
