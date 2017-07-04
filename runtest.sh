@@ -1,2 +1,2 @@
-cp simple.mtl /tmp/
-stack runghc test.hs > /tmp/test.obj
+cp simple.mtl /tmp/target/
+stack runghc test.hs > /tmp/target/test.obj
